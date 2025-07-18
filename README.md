@@ -10,6 +10,10 @@ Il [dataset](https://www.kaggle.com/datasets/tanishksharma9905/top-popular-anime
 
 Nel notebook `progetto_finale_anime.ipynb` è stata condotta un'analisi esplorativa approfondita del dataset. Sono stati esaminati la distribuzione dei punteggi nel tempo, la popolarità dei diversi generi, la relazione tra numero di episodi e valutazione, e altri aspetti salienti. Sono stati utilizzati grafici e statistiche descrittive per visualizzare i principali trend e facilitare la comprensione dei dati.
 
+Sono state inoltre aggiunte due analisi avanzate:
+- **Regressione lineare multipla:** è stato implementato un modello di regressione lineare multipla per prevedere il punteggio degli anime sulla base di variabili come il numero di episodi, i generi trattati e l'anno di uscita, al fine di individuare le relazioni tra queste caratteristiche e il punteggio assegnato.
+- **KNNImputer:** per gestire i valori mancanti nel dataset, è stato utilizzato il metodo KNNImputer, che consente di stimare i dati mancanti sfruttando la similarità tra le osservazioni, migliorando così la qualità e l'affidabilità delle analisi successive.
+
 ### Chatbot 🤖
 
 Il file `progetto_finale_anime_chatbot.py` implementa un chatbot basato sulle API di OpenAI, progettato per interagire direttamente con il dataset. Il chatbot permette agli utenti di porre domande sugli anime presenti, ricevere suggerimenti personalizzati, ottenere statistiche e informazioni dettagliate, e navigare tra i dati in modo intuitivo. Sono state definite funzioni e strumenti specifici per migliorare l'esperienza di consultazione.
