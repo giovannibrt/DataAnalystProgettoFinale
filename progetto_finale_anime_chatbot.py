@@ -1,24 +1,38 @@
+##################################################
+# This script is part of a chatbot project that provides information about anime.
+# It includes functions to retrieve anime data based on various criteria.
+# The dataset is preprocessed to ensure data quality and relevance.
+# The chatbot can handle requests for top anime, genre-specific anime, seasonal anime, and more.
+# The OpenAI API is used as base for the chatbot's functionality.
+##################################################
+
+
+##################################################
+# Preliminary setup
+##################################################
+
+# Import necessary libraries and set up the OpenAI client
 import json  # Import the json module for handling JSON data
 import pandas as pd  # Import pandas for data manipulation
 import matplotlib.pyplot as plt  # Import matplotlib for creating plots
 import numpy as np  # Import numpy for numerical operations
 from openai import OpenAI  # Import the OpenAI class to interact with the OpenAI API
-from dotenv import (
-    load_dotenv,
-)  # Import load_dotenv to load environment variables from a .env file
+from dotenv import load_dotenv # Import load_dotenv to load environment variables from a .env file
 import os  # Import os to interact with the operating system
 
-# Load environment variables from the .env file
-load_dotenv()
+load_dotenv() # Load environment variables from the .env file
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") # Retrieve the OpenAI API key from the environment variable
+if not OPENAI_API_KEY:
+    raise ValueError("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
+client = OpenAI(api_key=OPENAI_API_KEY) # Create an instance of the OpenAI client using the API key
 
-# Retrieve the OpenAI API key from the environment variable
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Create an instance of the OpenAI client using the API key
-client = OpenAI(api_key=OPENAI_API_KEY)
+##################################################
+# Loading of the dataset and preprocessing
+##################################################
 
 # Load the anime dataset from a csv file
-df = pd.read_csv(r'Studenti/GiovanniBartolini/ProgettoFinale/popular_anime.csv')
+df = pd.read_csv(r'popular_anime.csv')
 
 # Clean the dataset by filling empty values
 # Create a copy of the DataFrame to avoid modifying the original
@@ -63,6 +77,13 @@ df_filtered = df_filtered[~df_filtered['genres'].str.contains('Hentai|Erotic', c
 less_relevant_types = ['Unknown', 'PV', 'CM', 'Music']
 df_filtered = df_filtered[~df_filtered['type'].isin(less_relevant_types)]
 
+# Remove anime with a score of 0
+df_filtered = df_filtered[df_filtered['score'] > 0]
+
+
+##################################################
+# Definitions of functions and tools for the chatbot
+##################################################
 
 # Start definitions of functions for the chatbot
 def get_top_anime_by_column(data=df_filtered.to_dict(orient='records'), n=10, column='score', ascending=False):
@@ -635,7 +656,7 @@ def function_calling(tool_calls):
     results = []
     for tool_call in tool_calls:
         tool_name = tool_call.function.name
-        print(f"Calling tool: {tool_name} with arguments: {tool_call.function.arguments}")
+        print(f"Calling tool: {tool_name} with arguments: {tool_call.function.arguments}") # Debugging line to see the tool call details
         params = json.loads(tool_call.function.arguments)
         if 'data' not in params:
             params['data'] = df_filtered.to_dict(orient='records')  # Convert dictionary to list of dicts
@@ -696,16 +717,34 @@ def function_calling(tool_calls):
 
 
 
+##################################################
 # Main loop to interact with the chatbot
+##################################################
+
 if __name__ == "__main__":
-    # Vari esempi di richieste per il corso di data analyst
-    messages = []
-    messages.append(
+    
+    # Initialize the chatbot
+    messages = [
         {
             "role": "system",
             "content": "Sei un assistente esperto in anime. Puoi rispondere a domande su anime, generi, stagioni, anni di uscita, produttori, studi di animazione e altro ancora. Utilizza le funzioni disponibili (anche più di una alla volta) per fornire risposte accurate o per dare consigli sugli anime migliori per l'utente. Fai attenzione a flitrare le risposte in base al genere specifico richiesto.",
+        },
+        {
+            "role": "user",
+            "content": "Ciao! Chi sei?",
         }
+    ]
+
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=messages
     )
+
+    print("Avvio del chatbot...\n")
+    print(response.choices[0].message.content)
+    messages.append(response.choices[0].message)
+    
+    # Main loop 
     while True:
         print("\n"+"------"*8+"\n")
         Query = input("Inserisci la tua richiesta (o 'exit' per uscire):\n")
@@ -730,9 +769,9 @@ if __name__ == "__main__":
         print("\nRisposta del modello:")
         if response.choices[0].message.tool_calls:
             tool_result = function_calling(response.choices[0].message.tool_calls)
-            # Aggiungi il risultato come messaggio assistant
-            messages.append({"role": "assistant", "content": f"{tool_result}\nScrivi una risposta in base ai risultati ottenuti."})
-            # Chiedi al modello di generare una risposta basata su quel risultato
+            # Add the result as an assistant message
+            messages.append({"role": "assistant", "content": f"{tool_result}\nWrite a reply based on the obtained results."})
+            # Ask the model to generate a reply based on that result
             response = client.chat.completions.create(
                 model="gpt-4.1",
                 messages=messages[:60],
@@ -741,8 +780,8 @@ if __name__ == "__main__":
             )
         print(response.choices[0].message.content)
         if not response.choices[0].message.content:
-            print("Nessuna risposta generata dal modello. scrivo le ultime righe dei risultati di tool_calls:\n")
-            print(tool_result[-50:])  # Stampa le ultime 50 righe del risultato
+            print("No response generated by the model. Printing the last lines of tool_calls results:\n")
+            print(tool_result[-50:])  # Print the last 50 lines of the result
         else:
-            # Aggiungi la risposta del modello alla conversazione
+            # Add the model's reply to the conversation
             messages.append(response.choices[0].message)
