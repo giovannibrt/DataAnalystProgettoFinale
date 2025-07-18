@@ -11,3 +11,5 @@ Il file 'progetto_finale_anime.ipynb' contiene una prima analisi dei dati, con u
 ### Chatbot
 
 Il file 'progetto_finale_anime_chatbot.py' invece contiene una implementazione della API di OpenAI con definite funzioni e tool per poter interagire con il dataset e quindi dare informazioni e suggerimenti sugli anime presenti nel dataset.
+
+**Nota:** Per poter usare il chatbot è necessario avere una chiave API di OpenAI valida e salvarla in un file .env
